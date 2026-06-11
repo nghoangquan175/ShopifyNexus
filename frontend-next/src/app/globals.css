@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  /* Design System Theme - Alpine Horizon */
+  --color-primary: #041627;
+  --color-primary-container: #1a2b3c;
+  --color-on-primary-container: #8192a7;
+  --color-inverse-primary: #b7c8de;
+  
+  --color-secondary: #a23f00;
+  --color-secondary-container: #fc7127;
+  
+  --color-tertiary: #001821;
+  --color-tertiary-container: #0e2d39;
+  --color-on-tertiary-container: #7895a4;
+  --color-tertiary-fixed: #c9e7f7;
+  --color-on-tertiary-fixed: #001f2a;
+  
+  --color-background: #f8f9fa;
+  --color-on-background: #191c1d;
+  
+  --color-inverse-surface: #2e3132;
+  --color-inverse-on-surface: #f0f1f2;
+  
+  --color-surface-container-low: #f3f4f5;
+  --color-surface-container-lowest: #ffffff;
+  
+  --color-outline: #74777d;
+  --color-outline-variant: #c4c6cd;
+  
+  /* Font families derived from Next.js next/font/google */
+  --font-display: var(--font-sora), system-ui, sans-serif;
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  
+  --animate-zoom: zoom 0.7s ease;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-on-background);
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+/* Glassmorphism panel utility */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Hero gradient overlay */
+.hero-overlay {
+  background: linear-gradient(180deg, rgba(4, 22, 39, 0.2) 0%, rgba(4, 22, 39, 0.8) 100%);
+}
+
+/* Hide Header/Footer on auth pages */
+.auth-page header,
+.auth-page footer {
+  display: none !important;
+}
