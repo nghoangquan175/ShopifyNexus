@@ -131,7 +131,8 @@ export async function shopifyGetCollectionProducts(handle: string) {
     const res = await shopifyFetch<any>({
       query: COLLECTION_PRODUCTS_QUERY,
       variables: { handle },
-      cache: "no-store",
+      cache: "force-cache",
+      tags: ["collections", `collection-${handle}`],
     });
     return res.body.data?.collection || null;
   } catch (err) {
@@ -144,7 +145,8 @@ export async function shopifyGetProducts() {
   try {
     const res = await shopifyFetch<any>({
       query: ALL_PRODUCTS_QUERY,
-      cache: "no-store",
+      cache: "force-cache",
+      tags: ["products"],
     });
     return res.body.data?.products || null;
   } catch (err) {

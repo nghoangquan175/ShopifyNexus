@@ -36,32 +36,6 @@ export default function CartClient() {
         if (cart) {
           setItems(cart.items);
           setHasRealCart(true);
-        } else {
-          // If no real Shopify cart exists in cookies, load the beautiful mock cart for visual presentation
-          setItems([
-            {
-              id: "backpack",
-              variantId: "backpack",
-              title: "Ascent Pro Alpine Backpack",
-              price: 345.0,
-              imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBn030Vjs6v5kF08Dm8rJRfZeVKP0Ff9wXTfbPe2-p84nx7CY7CVeVyv84LZ9slDDkwmHbIXc-kQXWJwgyQVqs7XKDghpJpgDk2VKWQw2allKmmfBfPHC8atWPKjidSU4SEBeRoWgxd7gfYZGNb5kbLf8eoBvzoK78mJ4MqBFhhTkxDBkdx5vgz9nT5Q6GD_0UyK_7vGpgDA-9hIAVLCS3u2b909Z475BGgGjyahrq0EOU0FTvA5T0Xq2GCNWIPaarZBLGGo3Uka-2U",
-              color: "Slate Mist",
-              variantInfo: "45L Capacity",
-              quantity: 1,
-              stockStatus: "In Stock",
-            },
-            {
-              id: "jacket",
-              variantId: "jacket",
-              title: "Meridian Hardshell Jacket",
-              price: 580.0,
-              imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAyEzjuLr-nPBScI4k_zKWKuqfCAnYwq3fUk3Aji3nkBCYtcGTyvu9qXWKxqrHgq82vyDx3QNdEWwTYgG-T3eGjBuEj3ykeKAQ0CssHMQDR_d4FRNcAc9an1YF-8afA7MpnuWgpx9iuOh12A7nGXEpnq8h8YDlZp5M8ztNkTYCWY4R1f0WwkZlzGnwlLMal_GtzfK_3WrrpzcGSJpO2O0SjQZONmzKdl4HI5Xajq9h1-atis4q1LjztGhzEKA2FoRz0R6znL-0qfqr9",
-              color: "Sunset Terracotta",
-              variantInfo: "Size: L",
-              quantity: 1,
-              stockStatus: "Low Stock",
-            },
-          ]);
         }
       } catch (err) {
         console.error("Error loading cart:", err);
@@ -81,7 +55,7 @@ export default function CartClient() {
           return { ...item, quantity: newQty };
         }
         return item;
-      })
+      }),
     );
 
     // If it's a real Shopify item, call server action
@@ -160,17 +134,29 @@ export default function CartClient() {
           <h1 className="text-3xl md:text-4xl font-bold text-primary tracking-tight font-display">
             Your Equipment
           </h1>
-          <span className="text-on-surface-variant font-medium">
-            0 items
-          </span>
+          <span className="text-on-surface-variant font-medium">0 items</span>
         </div>
 
         <div className="py-24 text-center border border-dashed border-outline-variant/50 rounded-xl bg-surface-container-lowest">
-          <svg className="mx-auto h-12 w-12 text-outline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          <svg
+            className="mx-auto h-12 w-12 text-outline"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="1"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+            />
           </svg>
-          <h3 className="mt-4 text-lg font-bold text-primary font-display">Your cart is empty</h3>
-          <p className="mt-2 text-sm text-on-surface-variant">Looking for inspiration? Browse our collections to get started.</p>
+          <h3 className="mt-4 text-lg font-bold text-primary font-display">
+            Your cart is empty
+          </h3>
+          <p className="mt-2 text-sm text-on-surface-variant">
+            Looking for inspiration? Browse our collections to get started.
+          </p>
           <Link
             href="/collections"
             className="mt-6 inline-block px-8 py-3 bg-primary hover:bg-secondary text-white rounded-full text-sm font-semibold transition-all"
@@ -180,11 +166,22 @@ export default function CartClient() {
         </div>
 
         <div className="mt-8 text-sm text-on-surface-variant flex items-start gap-3 bg-surface-container-low/50 p-4 rounded-lg">
-          <svg className="h-5 w-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-5 w-5 text-primary shrink-0 mt-0.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <p>
-            Complimentary carbon-neutral shipping on all expedition gear orders over $200. Returns accepted within 30 days of delivery.
+            Complimentary carbon-neutral shipping on all expedition gear orders
+            over $200. Returns accepted within 30 days of delivery.
           </p>
         </div>
       </div>
@@ -230,11 +227,13 @@ export default function CartClient() {
                       <p className="text-sm text-on-surface-variant mb-2">
                         Color: {item.color} / {item.variantInfo}
                       </p>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        item.stockStatus === "In Stock"
-                          ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
-                          : "bg-secondary-fixed text-on-secondary-fixed-variant"
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          item.stockStatus === "In Stock"
+                            ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
+                            : "bg-secondary-fixed text-on-secondary-fixed-variant"
+                        }`}
+                      >
                         {item.stockStatus}
                       </span>
                     </div>
@@ -252,8 +251,18 @@ export default function CartClient() {
                         className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
                         aria-label="Decrease quantity"
                       >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M18 12H6"
+                          />
                         </svg>
                       </button>
                       <span className="w-10 text-center font-bold text-primary text-sm">
@@ -264,8 +273,18 @@ export default function CartClient() {
                         className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
                         aria-label="Increase quantity"
                       >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12M6 12h12" />
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 6v12M6 12h12"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -274,8 +293,18 @@ export default function CartClient() {
                       onClick={() => removeItem(item.id)}
                       className="flex items-center gap-1.5 text-xs font-bold text-on-surface-variant hover:text-error transition-colors uppercase tracking-wider font-display"
                     >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                       Remove
                     </button>
@@ -286,11 +315,22 @@ export default function CartClient() {
           </div>
 
           <div className="mt-8 text-sm text-on-surface-variant flex items-start gap-3 bg-surface-container-low/50 p-4 rounded-lg">
-            <svg className="h-5 w-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="h-5 w-5 text-primary shrink-0 mt-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <p>
-              Complimentary carbon-neutral shipping on all expedition gear orders over $200. Returns accepted within 30 days of delivery.
+              Complimentary carbon-neutral shipping on all expedition gear
+              orders over $200. Returns accepted within 30 days of delivery.
             </p>
           </div>
         </section>
@@ -304,25 +344,35 @@ export default function CartClient() {
             <div className="space-y-4 mb-6">
               <div className="flex justify-between text-on-surface-variant text-sm font-medium">
                 <span>Subtotal</span>
-                <span className="text-primary font-semibold">${subtotal.toFixed(2)}</span>
+                <span className="text-primary font-semibold">
+                  ${subtotal.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between text-on-surface-variant text-sm font-medium">
                 <span>Estimated Shipping</span>
-                <span className="text-primary font-semibold">Complimentary</span>
+                <span className="text-primary font-semibold">
+                  Complimentary
+                </span>
               </div>
               <div className="flex justify-between text-on-surface-variant text-sm font-medium">
                 <span>Taxes</span>
-                <span className="text-on-surface-variant text-xs">Calculated at checkout</span>
+                <span className="text-on-surface-variant text-xs">
+                  Calculated at checkout
+                </span>
               </div>
             </div>
 
             <div className="border-t border-outline-variant/30 pt-6 mb-8 flex justify-between items-end">
-              <span className="text-base font-bold text-primary font-display">Total</span>
+              <span className="text-base font-bold text-primary font-display">
+                Total
+              </span>
               <div className="text-right">
                 <span className="text-2xl md:text-3xl font-bold text-primary leading-none block font-display">
                   ${subtotal.toFixed(2)}
                 </span>
-                <span className="text-xs text-on-surface-variant mt-1 block font-medium">USD</span>
+                <span className="text-xs text-on-surface-variant mt-1 block font-medium">
+                  USD
+                </span>
               </div>
             </div>
 
@@ -331,23 +381,65 @@ export default function CartClient() {
               disabled={isCheckoutLoading}
               className="w-full bg-secondary hover:bg-secondary-container text-white font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-lg flex justify-center items-center gap-2 group text-sm uppercase tracking-wider font-display disabled:opacity-60 cursor-pointer"
             >
-              {isCheckoutLoading ? "Preparing checkout..." : "Proceed to Checkout"}
+              {isCheckoutLoading
+                ? "Preparing checkout..."
+                : "Proceed to Checkout"}
               {!isCheckoutLoading && (
-                <svg className="h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                <svg
+                  className="h-5 w-5 group-hover:translate-x-1 transition-transform"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                  />
                 </svg>
               )}
             </button>
 
             <div className="mt-6 flex justify-center gap-6 text-outline opacity-60">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
               </svg>
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
               </svg>
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
           </div>

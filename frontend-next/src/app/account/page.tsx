@@ -16,8 +16,7 @@ export default async function AccountPage() {
 
   // If customer is null, the token might be invalid or expired. Clear cookie and login again.
   if (!customer) {
-    cookieStore.delete("shopify_customer_token");
-    redirect("/account/login");
+    redirect("/api/auth/logout");
   }
 
   const orders = customer.orders?.edges || [];

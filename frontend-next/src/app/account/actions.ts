@@ -3,7 +3,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { shopifyLogin, shopifyRegister, shopifyLogout } from "@/lib/auth";
-
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -33,6 +32,8 @@ export async function loginAction(prevState: any, formData: FormData) {
       path: "/",
       sameSite: "lax",
     });
+
+
   } catch (err: any) {
     console.error("Login Server Action Error:", err);
     return { error: err.message || "Failed to log in." };
@@ -76,6 +77,8 @@ export async function registerAction(prevState: any, formData: FormData) {
         path: "/",
         sameSite: "lax",
       });
+
+
     }
   } catch (err: any) {
     console.error("Register Server Action Error:", err);

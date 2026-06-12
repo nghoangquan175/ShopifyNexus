@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import {
   shopifyCreateCart,
   shopifyAddLinesToCart,
@@ -8,7 +9,10 @@ import {
   shopifyRemoveCartLine,
   shopifyGetCart,
   shopifyUpdateCartBuyer,
+  shopifyCreateCartWithMultipleLines,
+  shopifyAddMultipleLinesToCart,
 } from "@/lib/cart";
+import { shopifyGetCustomer } from "@/lib/auth";
 import { shopifyFetch } from "@/lib/shopify";
 
 // Helper to get first variant ID of first product in Shopify store
@@ -85,7 +89,6 @@ export async function getCartAction() {
 export async function addToCartAction(variantId: string, quantity: number) {
   const cookieStore = await cookies();
   let cartId = cookieStore.get("shopify_cart_id")?.value;
-  const customerToken = cookieStore.get("shopify_customer_token")?.value;
 
   // Intercept mock/non-Shopify variant IDs to map to a real Shopify fallback variant
   if (!variantId.startsWith("gid://shopify/")) {
@@ -100,7 +103,7 @@ export async function addToCartAction(variantId: string, quantity: number) {
   try {
     let result;
     if (!cartId) {
-      result = await shopifyCreateCart(variantId, quantity, customerToken);
+      result = await shopifyCreateCart(variantId, quantity);
       if (result.cart?.id) {
         cartId = result.cart.id;
         cookieStore.set("shopify_cart_id", result.cart.id, {
@@ -112,16 +115,13 @@ export async function addToCartAction(variantId: string, quantity: number) {
       }
     } else {
       result = await shopifyAddLinesToCart(cartId, variantId, quantity);
-      if (customerToken) {
-        // Associate buyer if logged in
-        await shopifyUpdateCartBuyer(cartId, customerToken);
-      }
     }
 
     if (result.userErrors && result.userErrors.length > 0) {
       return { error: result.userErrors[0].message };
     }
 
+    revalidatePath("/");
     return { success: true };
   } catch (err: any) {
     console.error("addToCartAction error:", err);
@@ -139,6 +139,7 @@ export async function updateCartLineAction(lineId: string, quantity: number) {
     if (result.userErrors && result.userErrors.length > 0) {
       return { error: result.userErrors[0].message };
     }
+    revalidatePath("/");
     return { success: true };
   } catch (err: any) {
     return { error: err.message || "Failed to update cart." };
@@ -155,6 +156,7 @@ export async function removeCartLineAction(lineId: string) {
     if (result.userErrors && result.userErrors.length > 0) {
       return { error: result.userErrors[0].message };
     }
+    revalidatePath("/");
     return { success: true };
   } catch (err: any) {
     return { error: err.message || "Failed to remove item." };
@@ -164,15 +166,11 @@ export async function removeCartLineAction(lineId: string) {
 export async function checkoutAction(mockItems?: any[]) {
   const cookieStore = await cookies();
   const cartId = cookieStore.get("shopify_cart_id")?.value;
-  const customerToken = cookieStore.get("shopify_customer_token")?.value;
 
   try {
     if (cartId) {
       const cart = await shopifyGetCart(cartId);
       if (cart && cart.checkoutUrl) {
-        if (customerToken) {
-          await shopifyUpdateCartBuyer(cartId, customerToken);
-        }
         return { checkoutUrl: cart.checkoutUrl };
       }
     }
@@ -184,7 +182,7 @@ export async function checkoutAction(mockItems?: any[]) {
       return { error: "Could not initialize Shopify checkout. No products available in the store." };
     }
 
-    const result = await shopifyCreateCart(fallbackVariantId, 1, customerToken);
+    const result = await shopifyCreateCart(fallbackVariantId, 1);
     if (result.cart?.checkoutUrl) {
       return { checkoutUrl: result.cart.checkoutUrl };
     }

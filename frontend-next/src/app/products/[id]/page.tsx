@@ -227,7 +227,8 @@ export default async function ProductDetailPage({
       const res = await shopifyFetch<ShopifyProductData>({
         query: PRODUCT_BY_HANDLE_QUERY,
         variables: { handle: id },
-        cache: "no-store", // Check latest details
+        cache: "force-cache",
+        tags: ["products", `product-${id}`],
       });
 
       if (res.body.data.product) {

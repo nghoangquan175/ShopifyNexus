@@ -139,12 +139,39 @@ export async function shopifyCreateCart(variantId: string, quantity: number, cus
   return res.body.data.cartCreate;
 }
 
+export async function shopifyCreateCartWithMultipleLines(lines: { variantId: string; quantity: number }[], customerAccessToken?: string) {
+  const buyerIdentity = customerAccessToken ? { customerAccessToken } : undefined;
+  const res = await shopifyFetch<any>({
+    query: CART_CREATE_MUTATION,
+    variables: {
+      input: {
+        lines: lines.map(line => ({ merchandiseId: line.variantId, quantity: line.quantity })),
+        buyerIdentity,
+      },
+    },
+    cache: "no-store",
+  });
+  return res.body.data.cartCreate;
+}
+
 export async function shopifyAddLinesToCart(cartId: string, variantId: string, quantity: number) {
   const res = await shopifyFetch<any>({
     query: CART_LINES_ADD_MUTATION,
     variables: {
       cartId,
       lines: [{ merchandiseId: variantId, quantity }],
+    },
+    cache: "no-store",
+  });
+  return res.body.data.cartLinesAdd;
+}
+
+export async function shopifyAddMultipleLinesToCart(cartId: string, lines: { variantId: string; quantity: number }[]) {
+  const res = await shopifyFetch<any>({
+    query: CART_LINES_ADD_MUTATION,
+    variables: {
+      cartId,
+      lines: lines.map(line => ({ merchandiseId: line.variantId, quantity: line.quantity })),
     },
     cache: "no-store",
   });

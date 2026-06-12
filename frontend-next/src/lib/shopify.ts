@@ -66,3 +66,4 @@ export async function shopifyFetch<T>({
     throw error;
   }
 }
+

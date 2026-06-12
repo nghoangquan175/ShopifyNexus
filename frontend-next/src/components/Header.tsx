@@ -12,7 +12,8 @@ export default async function Header() {
   let cartItemCount = 0;
   if (cartId) {
     const cart = await shopifyGetCart(cartId);
-    cartItemCount = cart?.totalQuantity || 0;
+    // Display number of unique items (lines) instead of totalQuantity
+    cartItemCount = cart?.lines?.edges?.length || 0;
   }
 
   return (
