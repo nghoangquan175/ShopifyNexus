@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -8,6 +8,7 @@ import {
   updateCartLineAction,
   removeCartLineAction,
   checkoutAction,
+  clearCartCookieAction,
 } from "./cartActions";
 
 interface CartItem {
@@ -29,6 +30,7 @@ export default function CartClient() {
   const [hasRealCart, setHasRealCart] = useState(false);
   const [cartId, setCartId] = useState<string | null>(null);
   const [isWaitingPayment, setIsWaitingPayment] = useState(false);
+  const checkoutWindowRef = useRef<Window | null>(null);
 
   // Load cart on mount
   useEffect(() => {
@@ -54,22 +56,44 @@ export default function CartClient() {
     if (!isWaitingPayment || !cartId) return;
 
     let isSubscribed = true;
+    let apiCheckCounter = 0;
+
     const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/checkout/status?cartId=${encodeURIComponent(cartId)}`);
-        if (!res.ok) throw new Error("Status check failed");
-        const data = await res.json();
-        
-        if (isSubscribed && data.status === "completed") {
-          clearInterval(interval);
-          setIsWaitingPayment(false);
-          // Redirect to success page
-          window.location.href = `/checkout/success?cartId=${encodeURIComponent(cartId)}`;
-        }
-      } catch (err) {
-        console.error("Error checking checkout status:", err);
+      // Check if checkout tab is closed by the user
+      if (checkoutWindowRef.current && checkoutWindowRef.current.closed) {
+        clearInterval(interval);
+        setIsWaitingPayment(false);
+        return;
       }
-    }, 3000);
+
+      apiCheckCounter++;
+      if (apiCheckCounter >= 3) {
+        apiCheckCounter = 0;
+        try {
+          const res = await fetch(
+            `/api/checkout/status?cartId=${encodeURIComponent(cartId)}`,
+          );
+          if (!res.ok) throw new Error("Status check failed");
+          const data = await res.json();
+
+          if (isSubscribed && data.status === "completed") {
+            clearInterval(interval);
+            setIsWaitingPayment(false);
+            if (
+              checkoutWindowRef.current &&
+              !checkoutWindowRef.current.closed
+            ) {
+              checkoutWindowRef.current.close();
+            }
+            await clearCartCookieAction();
+            // Redirect to success page
+            window.location.href = `/checkout/success?cartId=${encodeURIComponent(cartId)}`;
+          }
+        } catch (err) {
+          console.error("Error checking checkout status:", err);
+        }
+      }
+    }, 5000);
 
     return () => {
       isSubscribed = false;
@@ -78,6 +102,9 @@ export default function CartClient() {
   }, [isWaitingPayment, cartId]);
 
   const handleMockPaymentSuccess = async () => {
+    if (checkoutWindowRef.current && !checkoutWindowRef.current.closed) {
+      checkoutWindowRef.current.close();
+    }
     if (!cartId) return;
     const token = cartId.split("/").pop();
     try {
@@ -95,6 +122,8 @@ export default function CartClient() {
       });
       if (res.ok) {
         console.log("Mock payment webhook sent successfully.");
+        await clearCartCookieAction();
+        window.location.href = `/checkout/success?cartId=${encodeURIComponent(cartId)}`;
       } else {
         console.error("Failed to send mock payment webhook.");
       }
@@ -154,7 +183,8 @@ export default function CartClient() {
     try {
       const res = await checkoutAction(items);
       if (res?.checkoutUrl) {
-        window.open(res.checkoutUrl, "_blank");
+        const win = window.open(res.checkoutUrl, "_blank");
+        checkoutWindowRef.current = win;
         setIsWaitingPayment(true);
       } else if (res?.error) {
         alert(res.error);
@@ -439,9 +469,7 @@ export default function CartClient() {
               disabled={isCheckoutLoading}
               className="w-full bg-secondary hover:bg-secondary-container text-white font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-lg flex justify-center items-center gap-2 group text-sm uppercase tracking-wider font-display disabled:opacity-60 cursor-pointer"
             >
-              {isCheckoutLoading
-                ? "Preparing checkout..."
-                : "Proceed to Checkout"}
+              {isCheckoutLoading ? "Preparing checkout..." : "Buy now"}
               {!isCheckoutLoading && (
                 <svg
                   className="h-5 w-5 group-hover:translate-x-1 transition-transform"
@@ -459,90 +487,62 @@ export default function CartClient() {
               )}
             </button>
 
-            <div className="mt-6 flex justify-center gap-6 text-outline opacity-60">
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                />
-              </svg>
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                />
-              </svg>
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
+            
           </div>
         </aside>
       </div>
-      
+
       {/* Loading Overlay for checkout */}
       {isWaitingPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md transition-all duration-300">
-          <div className="bg-zinc-900/80 border border-zinc-800 p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 text-center backdrop-blur-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md transition-all duration-300">
+          <div className="bg-zinc-950/90 border border-zinc-800 p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-4 text-center backdrop-blur-lg">
             {/* Spinning Circle */}
-            <div className="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-4 border-zinc-850 border-t-primary animate-spin" />
-              <svg className="h-8 w-8 text-primary animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-4 border-white/10 border-t-white animate-spin" />
+              <svg
+                className="h-10 w-10 text-white animate-pulse"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                />
               </svg>
             </div>
-            
-            <h3 className="text-xl font-bold text-white mb-2 font-display">
-              Checkout Session Initiated
-            </h3>
-            <p className="text-sm text-zinc-400 mb-6 leading-relaxed">
-              We've opened the secure Shopify checkout page in a new browser tab. Please complete your payment there.
-            </p>
-            
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-center gap-2 text-xs text-primary font-medium bg-primary/10 border border-primary/20 py-2.5 px-4 rounded-full animate-pulse">
-                <span className="h-2 w-2 rounded-full bg-primary animate-ping" />
-                Waiting for payment status...
-              </div>
 
+            <p className="text-zinc-200 text-sm font-medium mb-8 flex items-center justify-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-white animate-ping" />
+              Waiting for payment in new tab...
+            </p>
+
+            <div className="flex items-center gap-3 justify-center w-full">
               {process.env.NODE_ENV === "development" && (
                 <button
                   onClick={handleMockPaymentSuccess}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-md text-xs uppercase tracking-wider font-display cursor-pointer mt-2"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-full transition-all duration-300 shadow-md text-[11px] uppercase tracking-wider font-display cursor-pointer"
                 >
-                  Simulate Payment Success (Dev Only)
+                  Mock Pay
                 </button>
               )}
-
               <button
-                onClick={() => setIsWaitingPayment(false)}
-                className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-md text-xs uppercase tracking-wider font-display cursor-pointer mt-2"
+                onClick={() => {
+                  if (
+                    checkoutWindowRef.current &&
+                    !checkoutWindowRef.current.closed
+                  ) {
+                    checkoutWindowRef.current.close();
+                  }
+                  setIsWaitingPayment(false);
+                }}
+                className={`${
+                  process.env.NODE_ENV === "development" ? "flex-1" : "w-full"
+                } bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 px-4 rounded-full transition-all duration-300 shadow-md text-[11px] uppercase tracking-wider font-display cursor-pointer`}
               >
-                Cancel & Return to Cart
+                Cancel
               </button>
             </div>
           </div>

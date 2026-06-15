@@ -2,7 +2,16 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { shopifyLogin, shopifyRegister, shopifyLogout } from "@/lib/auth";
+import { 
+  shopifyLogin, 
+  shopifyRegister, 
+  shopifyLogout,
+  shopifyAddressCreate,
+  shopifyAddressUpdate,
+  shopifyAddressDelete,
+  shopifyDefaultAddressUpdate
+} from "@/lib/auth";
+import { revalidatePath } from "next/cache";
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -99,4 +108,72 @@ export async function logoutAction() {
   }
 
   redirect("/");
+}
+
+export async function createAddressAction(addressInput: any) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("shopify_customer_token")?.value;
+  if (!token) return { error: "Not authenticated" };
+
+  try {
+    const res = await shopifyAddressCreate(token, addressInput);
+    if (res.customerUserErrors && res.customerUserErrors.length > 0) {
+      return { error: res.customerUserErrors[0].message };
+    }
+    revalidatePath("/account");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || "Failed to create address" };
+  }
+}
+
+export async function updateAddressAction(addressId: string, addressInput: any) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("shopify_customer_token")?.value;
+  if (!token) return { error: "Not authenticated" };
+
+  try {
+    const res = await shopifyAddressUpdate(token, addressId, addressInput);
+    if (res.customerUserErrors && res.customerUserErrors.length > 0) {
+      return { error: res.customerUserErrors[0].message };
+    }
+    revalidatePath("/account");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || "Failed to update address" };
+  }
+}
+
+export async function deleteAddressAction(addressId: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("shopify_customer_token")?.value;
+  if (!token) return { error: "Not authenticated" };
+
+  try {
+    const res = await shopifyAddressDelete(token, addressId);
+    if (res.customerUserErrors && res.customerUserErrors.length > 0) {
+      return { error: res.customerUserErrors[0].message };
+    }
+    revalidatePath("/account");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || "Failed to delete address" };
+  }
+}
+
+export async function setDefaultAddressAction(addressId: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("shopify_customer_token")?.value;
+  if (!token) return { error: "Not authenticated" };
+
+  try {
+    const res = await shopifyDefaultAddressUpdate(token, addressId);
+    if (res.customerUserErrors && res.customerUserErrors.length > 0) {
+      return { error: res.customerUserErrors[0].message };
+    }
+    revalidatePath("/account");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || "Failed to set default address" };
+  }
 }

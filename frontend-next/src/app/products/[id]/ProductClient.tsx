@@ -22,6 +22,8 @@ interface ProductDetail {
     price: number;
     selectedOptions: Array<{ name: string; value: string }>;
   }>;
+  productType?: string;
+  collection?: { title: string; handle: string };
 }
 
 // Map of mock products
@@ -87,7 +89,6 @@ export default function ProductClient({
   const [activeImage, setActiveImage] = useState(product.images[0] || "/placeholder.png");
   const [selectedColor, setSelectedColor] = useState(product.colors[0] || { name: "Default", hex: "#7F7F7F" });
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "M");
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [cartAdded, setCartAdded] = useState(false);
 
   const router = useRouter();
@@ -131,6 +132,10 @@ export default function ProductClient({
     setTimeout(() => setCartAdded(false), 2000);
   };
 
+  const collectionTitle = product.collection?.title || "Gear";
+  const collectionHandle = product.collection?.handle || "gear";
+  const productType = product.productType || "Jackets";
+
   return (
     <div className="w-full">
       {/* Breadcrumbs */}
@@ -145,17 +150,17 @@ export default function ProductClient({
             <svg className="h-3.5 w-3.5 text-outline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
-            <Link href="/collections" className="hover:text-primary transition-colors">
-              Gear
+            <Link href={`/collections/${collectionHandle}`} className="hover:text-primary transition-colors capitalize">
+              {collectionTitle}
             </Link>
           </li>
           <li className="flex items-center gap-1">
             <svg className="h-3.5 w-3.5 text-outline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
-            <Link href="/collections/gear" className="hover:text-primary transition-colors">
-              Jackets
-            </Link>
+            <span className="text-on-surface-variant capitalize">
+              {productType}
+            </span>
           </li>
           <li className="flex items-center gap-1" aria-current="page">
             <svg className="h-3.5 w-3.5 text-outline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
@@ -305,41 +310,15 @@ export default function ProductClient({
                 </svg>
               )}
             </button>
-            <button
-              onClick={() => setIsWishlisted(!isWishlisted)}
-              aria-label="Add to Wishlist"
-              className={`p-4 border rounded-lg transition-colors flex items-center justify-center ${
-                isWishlisted
-                  ? "border-secondary text-secondary bg-secondary/5"
-                  : "border-outline-variant text-primary hover:border-primary hover:bg-surface-container-low"
-              }`}
-            >
-              <svg className="h-6 w-6" fill={isWishlisted ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </button>
+
           </div>
 
           {/* Trust Badges / Shipping Info */}
-          <div className="flex flex-col gap-3.5 text-sm text-on-surface-variant bg-surface-container-low p-4 rounded-lg">
-            <div className="flex items-center gap-3">
-              <svg className="h-5 w-5 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-              </svg>
-              <span>Free priority shipping on orders over $200</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <svg className="h-5 w-5 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 12H18M9 11l3-3m0 0l3 3m-3-3v12" />
-              </svg>
-              <span>Free 30-day returns & exchanges</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <svg className="h-5 w-5 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span>Lifetime warranty on manufacturing defects</span>
-            </div>
+{/* Trust Badges / Shipping Info */}
+          <div className="flex flex-col gap-2.5 text-xs font-semibold uppercase tracking-wider text-on-surface-variant/80 bg-surface-container-low p-4 rounded-lg">
+            <div>• Free priority shipping on orders over $200</div>
+            <div>• Free 30-day returns & exchanges</div>
+            <div>• Lifetime warranty on manufacturing defects</div>
           </div>
         </div>
       </div>

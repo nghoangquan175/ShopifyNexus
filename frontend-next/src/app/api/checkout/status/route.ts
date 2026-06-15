@@ -14,6 +14,10 @@ export async function GET(request: NextRequest) {
 
   const isCompleted = completedCheckouts.has(cartToken);
 
+  if (isCompleted) {
+    completedCheckouts.delete(cartToken);
+  }
+
   return NextResponse.json({
     status: isCompleted ? "completed" : "pending",
     cartToken,

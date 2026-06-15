@@ -13,6 +13,15 @@ interface ShopifyProduct {
   title: string;
   description: string;
   handle: string;
+  productType?: string;
+  collections?: {
+    edges: Array<{
+      node: {
+        title: string;
+        handle: string;
+      };
+    }>;
+  };
   priceRange: {
     minVariantPrice: {
       amount: string;
@@ -62,6 +71,15 @@ const PRODUCT_BY_HANDLE_QUERY = `
       title
       description
       handle
+      productType
+      collections(first: 1) {
+        edges {
+          node {
+            title
+            handle
+          }
+        }
+      }
       priceRange {
         minVariantPrice {
           amount
@@ -193,6 +211,8 @@ function mapShopifyProduct(shopifyProduct: ShopifyProduct) {
     sizes,
     specs,
     variants,
+    productType: shopifyProduct.productType || undefined,
+    collection: shopifyProduct.collections?.edges?.[0]?.node || undefined,
   };
 }
 

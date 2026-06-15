@@ -31,6 +31,26 @@ const GET_ALL_PRODUCTS_FOR_SEARCH = `
               currencyCode
             }
           }
+          options {
+            name
+            values
+          }
+          variants(first: 20) {
+            edges {
+              node {
+                id
+                title
+                price {
+                  amount
+                }
+                selectedOptions {
+                  name
+                  value
+                }
+                currentlyNotInStock
+              }
+            }
+          }
         }
       }
     }

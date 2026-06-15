@@ -40,6 +40,36 @@ const CUSTOMER_DETAILS_QUERY = `
       lastName
       email
       phone
+      defaultAddress {
+        id
+        address1
+        address2
+        city
+        company
+        country
+        firstName
+        lastName
+        phone
+        province
+        zip
+      }
+      addresses(first: 20) {
+        edges {
+          node {
+            id
+            address1
+            address2
+            city
+            company
+            country
+            firstName
+            lastName
+            phone
+            province
+            zip
+          }
+        }
+      }
       orders(first: 5) {
         edges {
           node {
@@ -114,3 +144,98 @@ export async function shopifyLogout(accessToken: string) {
     console.error("Error deleting shopify access token:", err);
   }
 }
+
+const CUSTOMER_ADDRESS_CREATE_MUTATION = `
+  mutation customerAddressCreate($customerAccessToken: String!, $address: MailingAddressInput!) {
+    customerAddressCreate(customerAccessToken: $customerAccessToken, address: $address) {
+      customerAddress {
+        id
+      }
+      customerUserErrors {
+        code
+        field
+        message
+      }
+    }
+  }
+`;
+
+const CUSTOMER_ADDRESS_UPDATE_MUTATION = `
+  mutation customerAddressUpdate($customerAccessToken: String!, $id: ID!, $address: MailingAddressInput!) {
+    customerAddressUpdate(customerAccessToken: $customerAccessToken, id: $id, address: $address) {
+      customerAddress {
+        id
+      }
+      customerUserErrors {
+        code
+        field
+        message
+      }
+    }
+  }
+`;
+
+const CUSTOMER_ADDRESS_DELETE_MUTATION = `
+  mutation customerAddressDelete($customerAccessToken: String!, $id: ID!) {
+    customerAddressDelete(customerAccessToken: $customerAccessToken, id: $id) {
+      deletedCustomerAddressId
+      customerUserErrors {
+        code
+        field
+        message
+      }
+    }
+  }
+`;
+
+const CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION = `
+  mutation customerDefaultAddressUpdate($addressId: ID!, $customerAccessToken: String!) {
+    customerDefaultAddressUpdate(addressId: $addressId, customerAccessToken: $customerAccessToken) {
+      customer {
+        id
+      }
+      customerUserErrors {
+        code
+        field
+        message
+      }
+    }
+  }
+`;
+
+export async function shopifyAddressCreate(accessToken: string, address: any) {
+  const res = await shopifyFetch<any>({
+    query: CUSTOMER_ADDRESS_CREATE_MUTATION,
+    variables: { customerAccessToken: accessToken, address },
+    cache: "no-store",
+  });
+  return res.body.data.customerAddressCreate;
+}
+
+export async function shopifyAddressUpdate(accessToken: string, addressId: string, address: any) {
+  const res = await shopifyFetch<any>({
+    query: CUSTOMER_ADDRESS_UPDATE_MUTATION,
+    variables: { customerAccessToken: accessToken, id: addressId, address },
+    cache: "no-store",
+  });
+  return res.body.data.customerAddressUpdate;
+}
+
+export async function shopifyAddressDelete(accessToken: string, addressId: string) {
+  const res = await shopifyFetch<any>({
+    query: CUSTOMER_ADDRESS_DELETE_MUTATION,
+    variables: { customerAccessToken: accessToken, id: addressId },
+    cache: "no-store",
+  });
+  return res.body.data.customerAddressDelete;
+}
+
+export async function shopifyDefaultAddressUpdate(accessToken: string, addressId: string) {
+  const res = await shopifyFetch<any>({
+    query: CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION,
+    variables: { customerAccessToken: accessToken, addressId },
+    cache: "no-store",
+  });
+  return res.body.data.customerDefaultAddressUpdate;
+}
+

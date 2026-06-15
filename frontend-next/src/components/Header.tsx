@@ -1,12 +1,20 @@
 import Link from "next/link";
 import Image from "next/image";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { shopifyGetCart } from "@/lib/cart";
 
 export default async function Header() {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "/";
+
   const cookieStore = await cookies();
   const token = cookieStore.get("shopify_customer_token")?.value;
-  const profileLink = token ? "/account" : "/account/login";
+  
+  let profileLink = "/account";
+  if (!token) {
+    const isAuthPage = pathname.startsWith("/account/login") || pathname.startsWith("/account/register");
+    profileLink = isAuthPage ? "/account/login" : `/account/login?redirect=${encodeURIComponent(pathname)}`;
+  }
   
   const cartId = cookieStore.get("shopify_cart_id")?.value;
   let cartItemCount = 0;
@@ -102,26 +110,6 @@ export default async function Header() {
               />
             </svg>
           </Link>
-
-          {/* Wishlist Icon */}
-          <button
-            className="p-2 hover:text-primary transition-colors scale-95 hover:scale-105 active:scale-95 transition-transform"
-            aria-label="Wishlist"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-          </button>
 
           {/* Cart Icon */}
           <Link

@@ -176,9 +176,13 @@ export async function checkoutAction(mockItems?: any[]) {
     if (cartId) {
       if (customerToken) {
         console.log(`[Checkout Action] Associating customer token with cart: ${cartId}`);
-        const buyerResult = await shopifyUpdateCartBuyer(cartId, customerToken);
-        if (buyerResult?.cart?.checkoutUrl) {
-          return { checkoutUrl: buyerResult.cart.checkoutUrl };
+        try {
+          const buyerResult = await shopifyUpdateCartBuyer(cartId, customerToken);
+          if (buyerResult?.cart?.checkoutUrl) {
+            return { checkoutUrl: buyerResult.cart.checkoutUrl };
+          }
+        } catch (buyerError) {
+          console.error("[Checkout Action] Failed to associate customer token, falling back to basic checkout:", buyerError);
         }
       }
 
@@ -204,4 +208,9 @@ export async function checkoutAction(mockItems?: any[]) {
   } catch (err: any) {
     return { error: err.message || "Checkout failed." };
   }
+}
+
+export async function clearCartCookieAction() {
+  const cookieStore = await cookies();
+  cookieStore.delete("shopify_cart_id");
 }

@@ -31,6 +31,26 @@ const SEARCH_PRODUCTS_QUERY = `
                 currencyCode
               }
             }
+            options {
+              name
+              values
+            }
+            variants(first: 20) {
+              edges {
+                node {
+                  id
+                  title
+                  price {
+                    amount
+                  }
+                  selectedOptions {
+                    name
+                    value
+                  }
+                  currentlyNotInStock
+                }
+              }
+            }
           }
         }
       }
@@ -65,6 +85,26 @@ const ALL_PRODUCTS_QUERY = `
             minVariantPrice {
               amount
               currencyCode
+            }
+          }
+          options {
+            name
+            values
+          }
+          variants(first: 20) {
+            edges {
+              node {
+                id
+                title
+                price {
+                  amount
+                }
+                selectedOptions {
+                  name
+                  value
+                }
+                currentlyNotInStock
+              }
             }
           }
         }
