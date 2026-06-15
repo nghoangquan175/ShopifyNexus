@@ -70,7 +70,7 @@ const CUSTOMER_DETAILS_QUERY = `
           }
         }
       }
-      orders(first: 5) {
+      orders(first: 10) {
         edges {
           node {
             id
@@ -82,6 +82,18 @@ const CUSTOMER_DETAILS_QUERY = `
             }
             financialStatus
             fulfillmentStatus
+            lineItems(first: 1) {
+              edges {
+                node {
+                  variant {
+                    image {
+                      url
+                      altText
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -238,4 +250,86 @@ export async function shopifyDefaultAddressUpdate(accessToken: string, addressId
   });
   return res.body.data.customerDefaultAddressUpdate;
 }
+
+const CUSTOMER_ORDER_QUERY = `
+  query getCustomerOrder($customerAccessToken: String!) {
+    customer(customerAccessToken: $customerAccessToken) {
+      orders(first: 50) {
+        edges {
+          node {
+            id
+            orderNumber
+            processedAt
+            totalPrice {
+              amount
+              currencyCode
+            }
+            financialStatus
+            fulfillmentStatus
+            shippingAddress {
+              firstName
+              lastName
+              address1
+              address2
+              city
+              province
+              zip
+              country
+              phone
+            }
+            lineItems(first: 50) {
+              edges {
+                node {
+                  title
+                  quantity
+                  variant {
+                    id
+                    title
+                    price {
+                      amount
+                      currencyCode
+                    }
+                    image {
+                      url
+                      altText
+                    }
+                    product {
+                      id
+                      handle
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export async function shopifyGetCustomerOrder(accessToken: string, orderId: string) {
+  try {
+    const res = await shopifyFetch<any>({
+      query: CUSTOMER_ORDER_QUERY,
+      variables: { customerAccessToken: accessToken },
+      cache: "no-store",
+    });
+    const orders = res.body.data?.customer?.orders?.edges || [];
+    const matchedOrder = orders.find(({ node }: any) => {
+      const nodeNumericMatch = node.id.match(/Order\/(\d+)/);
+      const nodeNumericId = nodeNumericMatch ? nodeNumericMatch[1] : "";
+      
+      const targetNumericMatch = orderId.match(/Order\/(\d+)/);
+      const targetNumericId = targetNumericMatch ? targetNumericMatch[1] : orderId;
+      
+      return nodeNumericId === targetNumericId && nodeNumericId !== "";
+    });
+    return matchedOrder ? matchedOrder.node : null;
+  } catch (err) {
+    console.error("Error fetching shopify customer order:", err);
+    return null;
+  }
+}
+
 

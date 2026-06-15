@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { 
   createAddressAction, 
   updateAddressAction, 
@@ -32,6 +34,18 @@ interface Order {
   };
   financialStatus: string;
   fulfillmentStatus: string;
+  lineItems?: {
+    edges: Array<{
+      node: {
+        variant?: {
+          image?: {
+            url: string;
+            altText?: string | null;
+          } | null;
+        } | null;
+      };
+    }>;
+  };
 }
 
 interface AccountTabsProps {
@@ -51,6 +65,7 @@ export default function AccountTabs({
   defaultAddressId,
   customerProfile,
 }: AccountTabsProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"orders" | "addresses">("orders");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
@@ -250,6 +265,7 @@ export default function AccountTabs({
                   <thead>
                     <tr className="bg-surface-container-low border-b border-outline-variant/20">
                       <th className="p-4 font-bold text-primary font-display uppercase text-xs tracking-wider">Order</th>
+                      <th className="p-4 font-bold text-primary font-display uppercase text-xs tracking-wider">Preview</th>
                       <th className="p-4 font-bold text-primary font-display uppercase text-xs tracking-wider">Date</th>
                       <th className="p-4 font-bold text-primary font-display uppercase text-xs tracking-wider">Payment</th>
                       <th className="p-4 font-bold text-primary font-display uppercase text-xs tracking-wider">Fulfillment</th>
@@ -257,39 +273,73 @@ export default function AccountTabs({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-outline-variant/20">
-                    {orders.map(({ node: order }) => (
-                      <tr key={order.id} className="hover:bg-surface-container-low/20 transition-colors">
-                        <td className="p-4 font-bold text-primary">#{order.orderNumber}</td>
-                        <td className="p-4 text-on-surface-variant font-medium">
-                          {new Date(order.processedAt).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        </td>
-                        <td className="p-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            order.financialStatus === "PAID"
-                              ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
-                              : "bg-error/10 text-error"
-                          }`}>
-                            {order.financialStatus}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            order.fulfillmentStatus === "FULFILLED"
-                              ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
-                              : "bg-secondary-fixed text-on-secondary-fixed-variant"
-                          }`}>
-                            {order.fulfillmentStatus || "UNFULFILLED"}
-                          </span>
-                        </td>
-                        <td className="p-4 text-right font-bold text-primary">
-                          ${parseFloat(order.totalPrice.amount).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
+                    {orders.map(({ node: order }) => {
+                      const match = order.id.match(/Order\/(\d+)/);
+                      const orderId = match ? match[1] : order.id.split("/").pop();
+                      const firstItemImage = order.lineItems?.edges?.[0]?.node?.variant?.image;
+
+                      return (
+                        <tr
+                          key={order.id}
+                          className="hover:bg-surface-container-low/20 transition-colors cursor-pointer"
+                          onClick={() => router.push(`/account/orders/${orderId}`)}
+                        >
+                          <td className="p-4">
+                            <Link
+                              href={`/account/orders/${orderId}`}
+                              className="font-bold text-primary hover:text-secondary hover:underline transition-colors"
+                            >
+                              #{order.orderNumber}
+                            </Link>
+                          </td>
+                          <td className="p-4">
+                            {firstItemImage?.url ? (
+                              <Link href={`/account/orders/${orderId}`}>
+                                <img
+                                  src={firstItemImage.url}
+                                  alt={firstItemImage.altText || `Order #${order.orderNumber}`}
+                                  className="w-12 h-12 rounded-lg object-cover border border-outline-variant/30 hover:scale-105 transition-transform duration-200"
+                                />
+                              </Link>
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-surface-container-low border border-outline-variant/20 flex items-center justify-center text-outline">
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-4 text-on-surface-variant font-medium">
+                            {new Date(order.processedAt).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </td>
+                          <td className="p-4">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              order.financialStatus === "PAID"
+                                ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
+                                : "bg-error/10 text-error"
+                            }`}>
+                              {order.financialStatus}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              order.fulfillmentStatus === "FULFILLED"
+                                ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
+                                : "bg-secondary-fixed text-on-secondary-fixed-variant"
+                            }`}>
+                              {order.fulfillmentStatus || "UNFULFILLED"}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right font-bold text-primary">
+                            ${parseFloat(order.totalPrice.amount).toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
