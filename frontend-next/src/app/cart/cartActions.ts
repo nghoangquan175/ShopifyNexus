@@ -51,7 +51,10 @@ export async function getCartAction() {
 
   try {
     const cart = await shopifyGetCart(cartId);
-    if (!cart) return null;
+    if (!cart) {
+      cookieStore.delete("shopify_cart_id");
+      return null;
+    }
 
     // Format cart to match CartItem interface
     const items = cart.lines.edges.map((edge: any) => {
@@ -89,6 +92,7 @@ export async function getCartAction() {
 export async function addToCartAction(variantId: string, quantity: number) {
   const cookieStore = await cookies();
   let cartId = cookieStore.get("shopify_cart_id")?.value;
+  const customerToken = cookieStore.get("shopify_customer_token")?.value;
 
   // Intercept mock/non-Shopify variant IDs to map to a real Shopify fallback variant
   if (!variantId.startsWith("gid://shopify/")) {
@@ -103,7 +107,7 @@ export async function addToCartAction(variantId: string, quantity: number) {
   try {
     let result;
     if (!cartId) {
-      result = await shopifyCreateCart(variantId, quantity);
+      result = await shopifyCreateCart(variantId, quantity, customerToken);
       if (result.cart?.id) {
         cartId = result.cart.id;
         cookieStore.set("shopify_cart_id", result.cart.id, {
@@ -166,9 +170,18 @@ export async function removeCartLineAction(lineId: string) {
 export async function checkoutAction(mockItems?: any[]) {
   const cookieStore = await cookies();
   const cartId = cookieStore.get("shopify_cart_id")?.value;
+  const customerToken = cookieStore.get("shopify_customer_token")?.value;
 
   try {
     if (cartId) {
+      if (customerToken) {
+        console.log(`[Checkout Action] Associating customer token with cart: ${cartId}`);
+        const buyerResult = await shopifyUpdateCartBuyer(cartId, customerToken);
+        if (buyerResult?.cart?.checkoutUrl) {
+          return { checkoutUrl: buyerResult.cart.checkoutUrl };
+        }
+      }
+
       const cart = await shopifyGetCart(cartId);
       if (cart && cart.checkoutUrl) {
         return { checkoutUrl: cart.checkoutUrl };
@@ -182,7 +195,7 @@ export async function checkoutAction(mockItems?: any[]) {
       return { error: "Could not initialize Shopify checkout. No products available in the store." };
     }
 
-    const result = await shopifyCreateCart(fallbackVariantId, 1);
+    const result = await shopifyCreateCart(fallbackVariantId, 1, customerToken);
     if (result.cart?.checkoutUrl) {
       return { checkoutUrl: result.cart.checkoutUrl };
     }

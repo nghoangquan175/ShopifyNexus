@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag, revalidatePath } from "next/cache";
 import crypto from "crypto";
+import { completedCheckouts } from "@/lib/checkoutStore";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,8 +10,9 @@ export async function POST(request: NextRequest) {
     const topic = request.headers.get("x-shopify-topic") || "";
 
     const secret = process.env.SHOPIFY_WEBHOOK_SECRET;
+    const isMock = process.env.NODE_ENV === "development" && request.headers.get("x-mock-webhook") === "true";
 
-    if (secret) {
+    if (secret && !isMock) {
       const calculatedHmac = crypto
         .createHmac("sha256", secret)
         .update(rawBody, "utf8")
@@ -21,10 +23,15 @@ export async function POST(request: NextRequest) {
         return new NextResponse("Unauthorized Signature", { status: 401 });
       }
     } else {
-      console.warn(
-        "[Shopify Webhook] SHOPIFY_WEBHOOK_SECRET is not configured. Skipping signature verification for local testing."
-      );
+      if (isMock) {
+        console.log("[Shopify Webhook] Bypassing signature verification for local development mock request.");
+      } else {
+        console.warn(
+          "[Shopify Webhook] SHOPIFY_WEBHOOK_SECRET is not configured. Skipping signature verification for local testing."
+        );
+      }
     }
+
 
     console.log(`[Shopify Webhook] Received webhook topic: ${topic}`);
 
@@ -70,11 +77,14 @@ export async function POST(request: NextRequest) {
         revalidatePath(`/collections/${payload.handle}`);
       }
 
-      // Purge layout listing paths
-      revalidatePath("/");
-      revalidatePath("/search");
-      revalidatePath("/collections/all");
-      console.log(`[Shopify Webhook] Revalidated collection tags and paths.`);
+    } else if (topic === "orders/create") {
+      const cartToken = payload.cart_token;
+      if (cartToken) {
+        completedCheckouts.add(cartToken);
+        console.log(`[Shopify Webhook] Marked cart token as completed: ${cartToken}`);
+      } else {
+        console.warn("[Shopify Webhook] Received orders/create webhook but payload.cart_token is missing.");
+      }
     } else {
       // Generic fallback purge
       revalidateTag("products", "max");

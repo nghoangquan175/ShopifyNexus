@@ -27,6 +27,8 @@ export default function CartClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [hasRealCart, setHasRealCart] = useState(false);
+  const [cartId, setCartId] = useState<string | null>(null);
+  const [isWaitingPayment, setIsWaitingPayment] = useState(false);
 
   // Load cart on mount
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function CartClient() {
         const cart = await getCartAction();
         if (cart) {
           setItems(cart.items);
+          setCartId(cart.id);
           setHasRealCart(true);
         }
       } catch (err) {
@@ -45,6 +48,60 @@ export default function CartClient() {
     }
     loadCart();
   }, []);
+
+  // Polling for payment completion
+  useEffect(() => {
+    if (!isWaitingPayment || !cartId) return;
+
+    let isSubscribed = true;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/checkout/status?cartId=${encodeURIComponent(cartId)}`);
+        if (!res.ok) throw new Error("Status check failed");
+        const data = await res.json();
+        
+        if (isSubscribed && data.status === "completed") {
+          clearInterval(interval);
+          setIsWaitingPayment(false);
+          // Redirect to success page
+          window.location.href = `/checkout/success?cartId=${encodeURIComponent(cartId)}`;
+        }
+      } catch (err) {
+        console.error("Error checking checkout status:", err);
+      }
+    }, 3000);
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(interval);
+    };
+  }, [isWaitingPayment, cartId]);
+
+  const handleMockPaymentSuccess = async () => {
+    if (!cartId) return;
+    const token = cartId.split("/").pop();
+    try {
+      const res = await fetch("/api/webhooks/shopify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-shopify-topic": "orders/create",
+          "x-mock-webhook": "true",
+        },
+        body: JSON.stringify({
+          cart_token: token,
+          id: "mock-order-id-12345",
+        }),
+      });
+      if (res.ok) {
+        console.log("Mock payment webhook sent successfully.");
+      } else {
+        console.error("Failed to send mock payment webhook.");
+      }
+    } catch (err) {
+      console.error("Error calling mock webhook:", err);
+    }
+  };
 
   const updateQuantity = async (id: string, delta: number) => {
     // Optimistic UI update
@@ -97,7 +154,8 @@ export default function CartClient() {
     try {
       const res = await checkoutAction(items);
       if (res?.checkoutUrl) {
-        window.location.href = res.checkoutUrl;
+        window.open(res.checkoutUrl, "_blank");
+        setIsWaitingPayment(true);
       } else if (res?.error) {
         alert(res.error);
       }
@@ -445,6 +503,51 @@ export default function CartClient() {
           </div>
         </aside>
       </div>
+      
+      {/* Loading Overlay for checkout */}
+      {isWaitingPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md transition-all duration-300">
+          <div className="bg-zinc-900/80 border border-zinc-800 p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 text-center backdrop-blur-lg">
+            {/* Spinning Circle */}
+            <div className="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-4 border-zinc-850 border-t-primary animate-spin" />
+              <svg className="h-8 w-8 text-primary animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
+            
+            <h3 className="text-xl font-bold text-white mb-2 font-display">
+              Checkout Session Initiated
+            </h3>
+            <p className="text-sm text-zinc-400 mb-6 leading-relaxed">
+              We've opened the secure Shopify checkout page in a new browser tab. Please complete your payment there.
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-center gap-2 text-xs text-primary font-medium bg-primary/10 border border-primary/20 py-2.5 px-4 rounded-full animate-pulse">
+                <span className="h-2 w-2 rounded-full bg-primary animate-ping" />
+                Waiting for payment status...
+              </div>
+
+              {process.env.NODE_ENV === "development" && (
+                <button
+                  onClick={handleMockPaymentSuccess}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-md text-xs uppercase tracking-wider font-display cursor-pointer mt-2"
+                >
+                  Simulate Payment Success (Dev Only)
+                </button>
+              )}
+
+              <button
+                onClick={() => setIsWaitingPayment(false)}
+                className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-md text-xs uppercase tracking-wider font-display cursor-pointer mt-2"
+              >
+                Cancel & Return to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
