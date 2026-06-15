@@ -4,20 +4,40 @@ export default function Sustainability() {
   return (
     <section className="py-24 relative overflow-hidden bg-surface-container-low">
       {/* Background decoration topo SVG */}
-      <div className="absolute right-0 top-0 w-1/2 h-full opacity-30 pointer-events-none">
+      <div className="absolute right-0 top-0 w-full h-full opacity-30 pointer-events-none">
         <svg height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <pattern id="topo" width="100" height="100" patternUnits="userSpaceOnUse">
-              <path d="M0 50 Q 25 25, 50 50 T 100 50" fill="none" stroke="#8192a7" strokeWidth="0.5" />
-              <path d="M0 70 Q 25 45, 50 70 T 100 70" fill="none" stroke="#8192a7" strokeWidth="0.5" />
-              <path d="M0 90 Q 25 65, 50 90 T 100 90" fill="none" stroke="#8192a7" strokeWidth="0.5" />
+            <pattern
+              id="topo"
+              width="100"
+              height="100"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M0 50 Q 25 25, 50 50 T 100 50"
+                fill="none"
+                stroke="#8192a7"
+                strokeWidth="0.5"
+              />
+              <path
+                d="M0 70 Q 25 45, 50 70 T 100 70"
+                fill="none"
+                stroke="#8192a7"
+                strokeWidth="0.5"
+              />
+              <path
+                d="M0 90 Q 25 65, 50 90 T 100 90"
+                fill="none"
+                stroke="#8192a7"
+                strokeWidth="0.5"
+              />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#topo)" />
         </svg>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-16 relative z-10 flex flex-col lg:flex-row items-center gap-16">
+      <div className="max-w-7xl mx-auto px-6 md:px-16 relative z-10 flex flex-col lg:flex-row items-center gap-8">
         {/* Left Column: Forest image and floating card */}
         <div className="w-full lg:w-5/12 relative">
           <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-lg relative z-10">
@@ -28,16 +48,6 @@ export default function Sustainability() {
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 40vw"
             />
-          </div>
-          {/* Floating Glass Card */}
-          <div className="glass-panel absolute -bottom-10 -right-4 md:-right-10 p-6 md:p-8 rounded-xl max-w-[280px] md:max-w-xs z-20 shadow-xl border border-white/40">
-            <span className="text-secondary text-3xl mb-4 block" aria-hidden="true">
-              🍃
-            </span>
-            <h4 className="text-lg font-bold text-primary mb-2">Leave No Trace</h4>
-            <p className="text-sm text-on-surface-variant leading-relaxed">
-              100% of our supply chain is carbon neutral as of 2024.
-            </p>
           </div>
         </div>
 
@@ -50,7 +60,10 @@ export default function Sustainability() {
             Preserving the wild places we love to explore.
           </h2>
           <p className="text-base md:text-lg text-on-surface-variant mb-8 max-w-xl leading-relaxed">
-            We believe that true adventure shouldn't come at the cost of the environment. From utilizing recycled maritime plastics in our outerwear to funding trail restoration projects, sustainability is woven into the very fabric of our gear.
+            We believe that true adventure shouldn't come at the cost of the
+            environment. From utilizing recycled maritime plastics in our
+            outerwear to funding trail restoration projects, sustainability is
+            woven into the very fabric of our gear.
           </p>
           <ul className="space-y-6 mb-10 max-w-md">
             <li className="flex items-start gap-4">
@@ -61,7 +74,11 @@ export default function Sustainability() {
                 strokeWidth="2.5"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               <div>
                 <strong className="block text-primary font-bold text-sm md:text-base">
@@ -80,7 +97,11 @@ export default function Sustainability() {
                 strokeWidth="2.5"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               <div>
                 <strong className="block text-primary font-bold text-sm md:text-base">
