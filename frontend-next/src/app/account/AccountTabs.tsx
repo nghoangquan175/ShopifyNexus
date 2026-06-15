@@ -310,10 +310,12 @@ export default function AccountTabs({
                             )}
                           </td>
                           <td className="p-4 text-on-surface-variant font-medium">
-                            {new Date(order.processedAt).toLocaleDateString("en-US", {
+                            {new Date(order.processedAt).toLocaleString("en-US", {
                               year: "numeric",
                               month: "long",
                               day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
                             })}
                           </td>
                           <td className="p-4">
