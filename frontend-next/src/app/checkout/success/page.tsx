@@ -1,6 +1,13 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
+import { clearCartCookieAction } from "@/app/cart/cartActions";
 
 export default function CheckoutSuccessPage() {
+  useEffect(() => {
+    clearCartCookieAction();
+  }, []);
   return (
     <div className="mx-auto max-w-2xl px-6 py-20 text-center flex flex-col items-center justify-center min-h-[70vh]">
       {/* Decorative success card */}

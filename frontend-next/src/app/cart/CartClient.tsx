@@ -29,8 +29,6 @@ export default function CartClient() {
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [hasRealCart, setHasRealCart] = useState(false);
   const [cartId, setCartId] = useState<string | null>(null);
-  const [isWaitingPayment, setIsWaitingPayment] = useState(false);
-  const checkoutWindowRef = useRef<Window | null>(null);
 
   // Load cart on mount
   useEffect(() => {
@@ -51,86 +49,7 @@ export default function CartClient() {
     loadCart();
   }, []);
 
-  // Polling for payment completion
-  useEffect(() => {
-    if (!isWaitingPayment || !cartId) return;
 
-    let isSubscribed = true;
-    let apiCheckCounter = 0;
-
-    const interval = setInterval(async () => {
-      // Check if checkout tab is closed by the user
-      if (checkoutWindowRef.current && checkoutWindowRef.current.closed) {
-        clearInterval(interval);
-        setIsWaitingPayment(false);
-        return;
-      }
-
-      apiCheckCounter++;
-      if (apiCheckCounter >= 3) {
-        apiCheckCounter = 0;
-        try {
-          const res = await fetch(
-            `/api/checkout/status?cartId=${encodeURIComponent(cartId)}`,
-          );
-          if (!res.ok) throw new Error("Status check failed");
-          const data = await res.json();
-
-          if (isSubscribed && data.status === "completed") {
-            clearInterval(interval);
-            setIsWaitingPayment(false);
-            if (
-              checkoutWindowRef.current &&
-              !checkoutWindowRef.current.closed
-            ) {
-              checkoutWindowRef.current.close();
-            }
-            await clearCartCookieAction();
-            // Redirect to success page
-            window.location.href = `/checkout/success?cartId=${encodeURIComponent(cartId)}`;
-          }
-        } catch (err) {
-          console.error("Error checking checkout status:", err);
-        }
-      }
-    }, 5000);
-
-    return () => {
-      isSubscribed = false;
-      clearInterval(interval);
-    };
-  }, [isWaitingPayment, cartId]);
-
-  const handleMockPaymentSuccess = async () => {
-    if (checkoutWindowRef.current && !checkoutWindowRef.current.closed) {
-      checkoutWindowRef.current.close();
-    }
-    if (!cartId) return;
-    const token = cartId.split("/").pop();
-    try {
-      const res = await fetch("/api/webhooks/shopify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-shopify-topic": "orders/create",
-          "x-mock-webhook": "true",
-        },
-        body: JSON.stringify({
-          cart_token: token,
-          id: "mock-order-id-12345",
-        }),
-      });
-      if (res.ok) {
-        console.log("Mock payment webhook sent successfully.");
-        await clearCartCookieAction();
-        window.location.href = `/checkout/success?cartId=${encodeURIComponent(cartId)}`;
-      } else {
-        console.error("Failed to send mock payment webhook.");
-      }
-    } catch (err) {
-      console.error("Error calling mock webhook:", err);
-    }
-  };
 
   const updateQuantity = async (id: string, delta: number) => {
     // Optimistic UI update
@@ -183,9 +102,7 @@ export default function CartClient() {
     try {
       const res = await checkoutAction(items);
       if (res?.checkoutUrl) {
-        const win = window.open(res.checkoutUrl, "_blank");
-        checkoutWindowRef.current = win;
-        setIsWaitingPayment(true);
+        window.location.href = res.checkoutUrl;
       } else if (res?.error) {
         alert(res.error);
       }
@@ -486,68 +403,11 @@ export default function CartClient() {
                 </svg>
               )}
             </button>
-
-            
           </div>
         </aside>
       </div>
 
-      {/* Loading Overlay for checkout */}
-      {isWaitingPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md transition-all duration-300">
-          <div className="bg-zinc-950/90 border border-zinc-800 p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-4 text-center backdrop-blur-lg">
-            {/* Spinning Circle */}
-            <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-4 border-white/10 border-t-white animate-spin" />
-              <svg
-                className="h-10 w-10 text-white animate-pulse"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                />
-              </svg>
-            </div>
 
-            <p className="text-zinc-200 text-sm font-medium mb-8 flex items-center justify-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-white animate-ping" />
-              Waiting for payment in new tab...
-            </p>
-
-            <div className="flex items-center gap-3 justify-center w-full">
-              {process.env.NODE_ENV === "development" && (
-                <button
-                  onClick={handleMockPaymentSuccess}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-full transition-all duration-300 shadow-md text-[11px] uppercase tracking-wider font-display cursor-pointer"
-                >
-                  Mock Pay
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  if (
-                    checkoutWindowRef.current &&
-                    !checkoutWindowRef.current.closed
-                  ) {
-                    checkoutWindowRef.current.close();
-                  }
-                  setIsWaitingPayment(false);
-                }}
-                className={`${
-                  process.env.NODE_ENV === "development" ? "flex-1" : "w-full"
-                } bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 px-4 rounded-full transition-all duration-300 shadow-md text-[11px] uppercase tracking-wider font-display cursor-pointer`}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

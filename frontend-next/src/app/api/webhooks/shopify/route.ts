@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag, revalidatePath } from "next/cache";
 import crypto from "crypto";
-import { completedCheckouts } from "@/lib/checkoutStore";
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,13 +77,7 @@ export async function POST(request: NextRequest) {
       }
 
     } else if (topic === "orders/create") {
-      const cartToken = payload.cart_token;
-      if (cartToken) {
-        completedCheckouts.add(cartToken);
-        console.log(`[Shopify Webhook] Marked cart token as completed: ${cartToken}`);
-      } else {
-        console.warn("[Shopify Webhook] Received orders/create webhook but payload.cart_token is missing.");
-      }
+      // Do nothing for order creation webhooks
     } else {
       // Generic fallback purge
       revalidateTag("products", "max");
