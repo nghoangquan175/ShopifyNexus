@@ -275,10 +275,12 @@ export default async function OrderDetailPage({
                   className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
                     order.financialStatus === "PAID"
                       ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
+                      : order.financialStatus === "REFUNDED" || order.financialStatus === "PARTIALLY_REFUNDED"
+                      ? "bg-secondary-fixed text-on-secondary-fixed-variant"
                       : "bg-error/10 text-error"
                   }`}
                 >
-                  {order.financialStatus}
+                  {order.financialStatus ? order.financialStatus.replace(/_/g, " ") : ""}
                 </span>
               </div>
 
@@ -293,22 +295,33 @@ export default async function OrderDetailPage({
                       : "bg-secondary-fixed text-on-secondary-fixed-variant"
                   }`}
                 >
-                  {order.fulfillmentStatus || "UNFULFILLED"}
+                  {order.fulfillmentStatus ? order.fulfillmentStatus.replace(/_/g, " ") : "UNFULFILLED"}
                 </span>
               </div>
             </div>
 
-            {order.fulfillmentStatus === "FULFILLED" && (
+            {order.financialStatus === "REFUNDED" || order.financialStatus === "PARTIALLY_REFUNDED" ? (
               <div className="pt-4 border-t border-outline-variant/20 mt-4">
-                <a
-                  href={`https://shopify.com/${shopId || "101276778628"}/account`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full text-center inline-block px-4 py-2.5 bg-primary hover:bg-secondary text-white rounded-full text-xs font-semibold uppercase tracking-wider font-display transition-all shadow-sm"
+                <button
+                  disabled
+                  className="w-full text-center inline-block px-4 py-2.5 bg-outline/20 text-on-surface-variant/50 rounded-full text-xs font-semibold uppercase tracking-wider font-display cursor-not-allowed shadow-none"
                 >
-                  Request Return
-                </a>
+                  Refund Successfully
+                </button>
               </div>
+            ) : (
+              order.fulfillmentStatus === "FULFILLED" && (
+                <div className="pt-4 border-t border-outline-variant/20 mt-4">
+                  <a
+                    href={`https://shopify.com/${shopId || "101276778628"}/account`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full text-center inline-block px-4 py-2.5 bg-primary hover:bg-secondary text-white rounded-full text-xs font-semibold uppercase tracking-wider font-display transition-all shadow-sm"
+                  >
+                    Request Return
+                  </a>
+                </div>
+              )
             )}
           </div>
 

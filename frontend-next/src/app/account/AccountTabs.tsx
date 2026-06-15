@@ -318,13 +318,15 @@ export default function AccountTabs({
                               minute: "2-digit",
                             })}
                           </td>
-                          <td className="p-4">
+                           <td className="p-4">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                               order.financialStatus === "PAID"
                                 ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
+                                : order.financialStatus === "REFUNDED" || order.financialStatus === "PARTIALLY_REFUNDED"
+                                ? "bg-secondary-fixed text-on-secondary-fixed-variant"
                                 : "bg-error/10 text-error"
                             }`}>
-                              {order.financialStatus}
+                              {order.financialStatus ? order.financialStatus.replace(/_/g, " ") : ""}
                             </span>
                           </td>
                           <td className="p-4">
@@ -333,7 +335,7 @@ export default function AccountTabs({
                                 ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
                                 : "bg-secondary-fixed text-on-secondary-fixed-variant"
                             }`}>
-                              {order.fulfillmentStatus || "UNFULFILLED"}
+                              {order.fulfillmentStatus ? order.fulfillmentStatus.replace(/_/g, " ") : "UNFULFILLED"}
                             </span>
                           </td>
                           <td className="p-4 text-right font-bold text-primary">
