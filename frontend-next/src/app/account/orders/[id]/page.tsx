@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { shopifyGetCustomerOrder } from "@/lib/auth";
+import { shopifyGetShopId } from "@/lib/shopify";
 
 interface OrderDetailPageProps {
   params: Promise<{
@@ -17,6 +18,7 @@ export default async function OrderDetailPage({
 
   const cookieStore = await cookies();
   const token = cookieStore.get("shopify_customer_token")?.value;
+  const shopId = await shopifyGetShopId();
 
   if (!token) {
     redirect("/account/login");
@@ -295,6 +297,19 @@ export default async function OrderDetailPage({
                 </span>
               </div>
             </div>
+
+            {order.fulfillmentStatus === "FULFILLED" && (
+              <div className="pt-4 border-t border-outline-variant/20 mt-4">
+                <a
+                  href={`https://shopify.com/${shopId || "101276778628"}/account`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full text-center inline-block px-4 py-2.5 bg-primary hover:bg-secondary text-white rounded-full text-xs font-semibold uppercase tracking-wider font-display transition-all shadow-sm"
+                >
+                  Request Return
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Shipping Address Card */}

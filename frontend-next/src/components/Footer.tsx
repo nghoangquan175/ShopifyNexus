@@ -1,7 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
+import { shopifyGetShopId } from "@/lib/shopify";
 
 export default async function Footer() {
+  const shopId = await shopifyGetShopId();
   return (
     <footer className="bg-primary text-white font-sans border-t border-primary-container">
       <div className="mx-auto max-w-7xl px-6 py-20 md:px-16 w-full flex flex-col md:flex-row justify-between items-start gap-12">
@@ -57,6 +59,16 @@ export default async function Footer() {
                 >
                   Shipping & Returns
                 </Link>
+              </li>
+              <li>
+                <a
+                  href={`https://shopify.com/${shopId || "101276778628"}/account`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#8192a7] hover:text-secondary transition-colors"
+                >
+                  Request a Return
+                </a>
               </li>
               <li>
                 <Link

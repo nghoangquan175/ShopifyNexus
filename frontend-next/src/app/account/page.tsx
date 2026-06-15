@@ -20,7 +20,10 @@ export default async function AccountPage() {
     redirect("/api/auth/logout");
   }
 
-  const orders = customer.orders?.edges || [];
+  const rawOrders = customer.orders?.edges || [];
+  const orders = [...rawOrders].sort((a: any, b: any) => {
+    return new Date(b.node.processedAt).getTime() - new Date(a.node.processedAt).getTime();
+  });
   const addresses = (customer.addresses?.edges || []).map(({ node }: any) => node);
   const defaultAddressId = customer.defaultAddress?.id || null;
   const customerProfile = {

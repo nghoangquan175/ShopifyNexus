@@ -70,7 +70,7 @@ const CUSTOMER_DETAILS_QUERY = `
           }
         }
       }
-      orders(first: 10) {
+      orders(first: 20, reverse: true) {
         edges {
           node {
             id

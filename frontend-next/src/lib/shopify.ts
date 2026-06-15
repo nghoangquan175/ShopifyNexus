@@ -67,3 +67,29 @@ export async function shopifyFetch<T>({
   }
 }
 
+/**
+ * Retrieves the shop's numeric ID dynamically from the Storefront API.
+ */
+export async function shopifyGetShopId(): Promise<string | null> {
+  const envShopId = process.env.SHOPIFY_SHOP_ID || process.env.NEXT_PUBLIC_SHOPIFY_SHOP_ID;
+  if (envShopId) {
+    return envShopId;
+  }
+
+  try {
+    const res = await shopifyFetch<{ shop: { id: string } }>({
+      query: `{ shop { id } }`,
+      cache: "force-cache",
+    });
+    const id = res.body.data?.shop?.id;
+    if (id) {
+      // id is like "gid://shopify/Shop/101276778628"
+      const parts = id.split("/");
+      return parts[parts.length - 1];
+    }
+  } catch (err) {
+    console.error("Error fetching shop ID:", err);
+  }
+  return null;
+}
+
