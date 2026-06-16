@@ -1,5 +1,6 @@
 const domain = process.env.SHOPIFY_STORE_DOMAIN;
 const accessToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+const adminAccessToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 
 // API version for Shopify Storefront API
 const API_VERSION = "2024-07";
@@ -68,6 +69,53 @@ export async function shopifyFetch<T>({
 }
 
 /**
+ * Helper function to query the Shopify Admin API using GraphQL.
+ * Requires SHOPIFY_ADMIN_ACCESS_TOKEN environment variable.
+ */
+export async function shopifyAdminFetch<T>({
+  query,
+  variables = {},
+  headers = {},
+  cache = "no-store",
+  tags = [],
+}: ShopifyFetchParams): Promise<ShopifyResponse<T>> {
+  if (!domain || !adminAccessToken) {
+    throw new Error("Missing SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN in environment variables.");
+  }
+
+  const endpoint = `https://${domain}/admin/api/${API_VERSION}/graphql.json`;
+
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": adminAccessToken,
+        ...headers,
+      },
+      body: JSON.stringify({ query, variables }),
+      cache,
+      next: { tags },
+    });
+
+    const body = await res.json();
+
+    if (body.errors) {
+      console.error("Shopify Admin GraphQL errors:", body.errors);
+      throw new Error(body.errors[0].message || "GraphQL Admin Error");
+    }
+
+    return {
+      status: res.status,
+      body,
+    };
+  } catch (error) {
+    console.error("Shopify Admin Fetch Error:", error);
+    throw error;
+  }
+}
+
+/**
  * Retrieves the shop's numeric ID dynamically from the Storefront API.
  */
 export async function shopifyGetShopId(): Promise<string | null> {
@@ -92,4 +140,5 @@ export async function shopifyGetShopId(): Promise<string | null> {
   }
   return null;
 }
+
 

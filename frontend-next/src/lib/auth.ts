@@ -1,4 +1,4 @@
-import { shopifyFetch } from "./shopify";
+import { shopifyFetch, shopifyAdminFetch } from "./shopify";
 
 const CUSTOMER_CREATE_MUTATION = `
   mutation customerCreate($input: CustomerCreateInput!) {
@@ -15,6 +15,35 @@ const CUSTOMER_CREATE_MUTATION = `
     }
   }
 `;
+
+const ADMIN_CUSTOMER_CREATE_MUTATION = `
+  mutation customerCreate($input: CustomerInput!) {
+    customerCreate(input: $input) {
+      customer {
+        id
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+const CUSTOMER_SEND_ACCOUNT_INVITE_MUTATION = `
+  mutation customerSendAccountInviteEmail($customerId: ID!) {
+    customerSendAccountInviteEmail(customerId: $customerId) {
+      customer {
+        id
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
 
 const CUSTOMER_ACCESS_TOKEN_CREATE_MUTATION = `
   mutation customerAccessTokenCreate($input: CustomerAccessTokenCreateInput!) {
@@ -121,6 +150,53 @@ export async function shopifyRegister(variables: any) {
   });
   return res.body.data.customerCreate;
 }
+
+export async function shopifyAdminRegister(variables: any) {
+  const res = await shopifyAdminFetch<any>({
+    query: ADMIN_CUSTOMER_CREATE_MUTATION,
+    variables: { input: variables },
+    cache: "no-store",
+  });
+  return res.body.data.customerCreate;
+}
+
+export async function shopifySendActivationEmail(customerId: string) {
+  const res = await shopifyAdminFetch<any>({
+    query: CUSTOMER_SEND_ACCOUNT_INVITE_MUTATION,
+    variables: { customerId },
+    cache: "no-store",
+  });
+  return res.body.data.customerSendAccountInviteEmail;
+}
+
+const CUSTOMER_ACTIVATE_BY_URL_MUTATION = `
+  mutation customerActivateByUrl($activationUrl: URL!, $password: String!) {
+    customerActivateByUrl(activationUrl: $activationUrl, password: $password) {
+      customer {
+        id
+        email
+      }
+      customerAccessToken {
+        accessToken
+        expiresAt
+      }
+      customerUserErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export async function shopifyActivateByUrl(activationUrl: string, password: string) {
+  const res = await shopifyFetch<any>({
+    query: CUSTOMER_ACTIVATE_BY_URL_MUTATION,
+    variables: { activationUrl, password },
+    cache: "no-store",
+  });
+  return res.body.data.customerActivateByUrl;
+}
+
 
 export async function shopifyLogin(variables: any) {
   const res = await shopifyFetch<any>({

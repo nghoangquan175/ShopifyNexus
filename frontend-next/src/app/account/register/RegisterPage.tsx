@@ -34,7 +34,7 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary font-display mb-2">Create Account</h1>
           <p className="text-sm text-on-surface-variant leading-relaxed">
-            Create an account to track shipments and access your gear orders.
+            Create an account to track shipments and access your orders. After registering, you will need to check your email to activate your account.
           </p>
         </div>
 
@@ -44,20 +44,6 @@ export default function RegisterPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <span>{state.error}</span>
-          </div>
-        )}
-
-        {state?.success && state?.redirect && (
-          <div className="mb-6 p-4 bg-tertiary-fixed/15 border border-tertiary-fixed/30 text-primary text-sm rounded-xl flex items-start gap-2.5">
-            <svg className="h-5 w-5 shrink-0 mt-0.5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <p className="font-bold">Account created successfully!</p>
-              <Link href={state.redirect} className="underline font-semibold mt-1 inline-block">
-                Click here to log in
-              </Link>
-            </div>
           </div>
         )}
 
@@ -105,22 +91,6 @@ export default function RegisterPage() {
               required
               className="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-primary placeholder-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
               placeholder="name@domain.com"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-primary mb-2 font-display">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={6}
-              className="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-primary placeholder-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
-              placeholder="Min. 6 characters"
             />
           </div>
 

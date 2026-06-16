@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { 
   shopifyLogin, 
   shopifyRegister, 
+  shopifyAdminRegister,
+  shopifySendActivationEmail,
+  shopifyActivateByUrl,
   shopifyLogout,
   shopifyAddressCreate,
   shopifyAddressUpdate,
@@ -56,46 +59,34 @@ export async function registerAction(prevState: any, formData: FormData) {
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
   const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
 
-  if (!firstName || !lastName || !email || !password) {
+  if (!firstName || !lastName || !email) {
     return { error: "Please fill out all fields." };
   }
 
   try {
-    const regResult = await shopifyRegister({ firstName, lastName, email, password });
+    const regResult = await shopifyAdminRegister({ firstName, lastName, email });
 
-    if (regResult.customerUserErrors && regResult.customerUserErrors.length > 0) {
-      return { error: regResult.customerUserErrors[0].message };
+    if (regResult.userErrors && regResult.userErrors.length > 0) {
+      return { error: regResult.userErrors[0].message };
     }
 
-    // Auto-login after registration
-    const loginResult = await shopifyLogin({ email, password });
-
-    if (loginResult.customerUserErrors && loginResult.customerUserErrors.length > 0) {
-      return { success: true, redirect: "/account/login" };
+    const customerId = regResult.customer?.id;
+    if (!customerId) {
+      return { error: "Failed to create customer account." };
     }
 
-    const tokenData = loginResult.customerAccessToken;
-    if (tokenData && tokenData.accessToken) {
-      const cookieStore = await cookies();
-      cookieStore.set("shopify_customer_token", tokenData.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        expires: new Date(tokenData.expiresAt),
-        path: "/",
-        sameSite: "lax",
-      });
-
-
+    const inviteResult = await shopifySendActivationEmail(customerId);
+    if (inviteResult.userErrors && inviteResult.userErrors.length > 0) {
+      return { error: inviteResult.userErrors[0].message };
     }
+
   } catch (err: any) {
     console.error("Register Server Action Error:", err);
     return { error: err.message || "Failed to register." };
   }
 
-  const redirectPath = (formData.get("redirect") as string) || "/account";
-  redirect(redirectPath);
+  redirect("/account/register-success");
 }
 
 export async function logoutAction() {
@@ -176,4 +167,58 @@ export async function setDefaultAddressAction(addressId: string) {
   } catch (err: any) {
     return { error: err.message || "Failed to set default address" };
   }
+}
+
+export async function activateAccountAction(prevState: any, formData: FormData) {
+  const customerId = formData.get("customerId") as string;
+  const token = formData.get("token") as string;
+  const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
+
+  if (!customerId || !token || !password || !confirmPassword) {
+    return { error: "Please fill out all fields." };
+  }
+
+  if (password.length < 6) {
+    return { error: "Password must be at least 6 characters." };
+  }
+
+  if (password !== confirmPassword) {
+    return { error: "Passwords do not match." };
+  }
+
+  try {
+    const domain = process.env.SHOPIFY_STORE_DOMAIN;
+    if (!domain) {
+      throw new Error("Missing SHOPIFY_STORE_DOMAIN in environment variables.");
+    }
+
+    const activationUrl = `https://${domain}/account/activate/${customerId}/${token}`;
+    const result = await shopifyActivateByUrl(activationUrl, password);
+
+    if (result.customerUserErrors && result.customerUserErrors.length > 0) {
+      return { error: result.customerUserErrors[0].message };
+    }
+
+    const tokenData = result.customerAccessToken;
+    if (!tokenData || !tokenData.accessToken) {
+      return { error: "Failed to activate account. No access token received." };
+    }
+
+    // Set cookie to log them in automatically
+    const cookieStore = await cookies();
+    cookieStore.set("shopify_customer_token", tokenData.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      expires: new Date(tokenData.expiresAt),
+      path: "/",
+      sameSite: "lax",
+    });
+
+  } catch (err: any) {
+    console.error("Activate Account Action Error:", err);
+    return { error: err.message || "Failed to activate account." };
+  }
+
+  redirect("/account");
 }
