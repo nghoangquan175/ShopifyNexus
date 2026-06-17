@@ -2,9 +2,9 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { 
-  shopifyLogin, 
-  shopifyRegister, 
+import {
+  shopifyLogin,
+  shopifyRegister,
   shopifyAdminRegister,
   shopifyGenerateActivationUrl,
   shopifyActivateByUrl,
@@ -15,7 +15,6 @@ import {
   shopifyDefaultAddressUpdate
 } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { sendActivationEmail } from "@/lib/mail";
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email") as string;
@@ -108,11 +107,9 @@ export async function registerAction(prevState: any, formData: FormData) {
       return { error: "Failed to extract activation parameters." };
     }
 
-    // Build Next.js local activation URL dynamically using the current host
-    const headersList = await headers();
-    const host = headersList.get("host") || "localhost:3000";
-    const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
-    const localActivationUrl = `${protocol}://${host}/account/activate/${numericCustomerId}/${activationToken}`;
+    // Build Next.js local activation URL using the app URL environment variable
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const localActivationUrl = `${baseUrl}/account/activate/${numericCustomerId}/${activationToken}`;
 
     // Send custom styled activation email via Mailpit
     await sendActivationEmail({

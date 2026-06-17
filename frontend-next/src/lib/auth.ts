@@ -416,10 +416,10 @@ export async function shopifyGetCustomerOrder(accessToken: string, orderId: stri
     const matchedOrder = orders.find(({ node }: any) => {
       const nodeNumericMatch = node.id.match(/Order\/(\d+)/);
       const nodeNumericId = nodeNumericMatch ? nodeNumericMatch[1] : "";
-      
+
       const targetNumericMatch = orderId.match(/Order\/(\d+)/);
       const targetNumericId = targetNumericMatch ? targetNumericMatch[1] : orderId;
-      
+
       return nodeNumericId === targetNumericId && nodeNumericId !== "";
     });
     return matchedOrder ? matchedOrder.node : null;
