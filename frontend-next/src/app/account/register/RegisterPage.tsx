@@ -13,7 +13,10 @@ export default function RegisterPage() {
   return (
     <div className="w-full max-w-md mx-auto py-12">
       {/* Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="flex text-sm text-on-surface-variant mb-8 font-body-md justify-center">
+      <nav
+        aria-label="Breadcrumb"
+        className="flex text-sm text-on-surface-variant mb-8 font-body-md justify-center"
+      >
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
           <li>
             <Link href="/" className="hover:text-primary transition-colors">
@@ -21,8 +24,18 @@ export default function RegisterPage() {
             </Link>
           </li>
           <li className="flex items-center gap-1">
-            <svg className="h-3.5 w-3.5 text-outline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            <svg
+              className="h-3.5 w-3.5 text-outline"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
             <span className="text-primary font-medium">Create Account</span>
           </li>
@@ -32,16 +45,30 @@ export default function RegisterPage() {
       {/* Main card */}
       <div className="bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/30 shadow-[0_24px_80px_rgba(26,43,60,0.06)]">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary font-display mb-2">Create Account</h1>
+          <h1 className="text-3xl font-bold text-primary font-display mb-2">
+            Create Account
+          </h1>
           <p className="text-sm text-on-surface-variant leading-relaxed">
-            Create an account to track shipments and access your orders. After registering, you will need to check your email to activate your account.
+            Create an account to track shipments and access your orders. After
+            registering, you will need to check your email to activate your
+            account.
           </p>
         </div>
 
         {state?.error && (
           <div className="mb-6 p-4 bg-error/10 border border-error/20 text-error text-sm rounded-xl flex items-start gap-2.5">
-            <svg className="h-5 w-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="h-5 w-5 shrink-0 mt-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
             <span>{state.error}</span>
           </div>
@@ -51,7 +78,10 @@ export default function RegisterPage() {
           <input type="hidden" name="redirect" value={redirectPath} />
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-xs font-bold uppercase tracking-wider text-primary mb-2 font-display">
+              <label
+                htmlFor="firstName"
+                className="block text-xs font-bold uppercase tracking-wider text-primary mb-2 font-display"
+              >
                 First Name
               </label>
               <input
@@ -65,7 +95,10 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="lastName" className="block text-xs font-bold uppercase tracking-wider text-primary mb-2 font-display">
+              <label
+                htmlFor="lastName"
+                className="block text-xs font-bold uppercase tracking-wider text-primary mb-2 font-display"
+              >
                 Last Name
               </label>
               <input
@@ -80,7 +113,10 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-primary mb-2 font-display">
+            <label
+              htmlFor="email"
+              className="block text-xs font-bold uppercase tracking-wider text-primary mb-2 font-display"
+            >
               Email Address
             </label>
             <input
@@ -101,8 +137,18 @@ export default function RegisterPage() {
           >
             {isPending ? "Creating Account..." : "Create Account"}
             {!isPending && (
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
               </svg>
             )}
           </button>
@@ -111,7 +157,10 @@ export default function RegisterPage() {
         <div className="mt-8 pt-6 border-t border-outline-variant/20 text-center">
           <p className="text-sm text-on-surface-variant">
             Already have an account?{" "}
-            <Link href={`/account/login?redirect=${encodeURIComponent(redirectPath)}`} className="font-bold text-secondary hover:underline">
+            <Link
+              href={`/account/login?redirect=${encodeURIComponent(redirectPath)}`}
+              className="font-bold text-secondary hover:underline"
+            >
               Sign in
             </Link>
           </p>

@@ -6,7 +6,7 @@ import {
   shopifyLogin, 
   shopifyRegister, 
   shopifyAdminRegister,
-  shopifySendActivationEmail,
+  shopifyGenerateActivationUrl,
   shopifyActivateByUrl,
   shopifyLogout,
   shopifyAddressCreate,
@@ -15,6 +15,8 @@ import {
   shopifyDefaultAddressUpdate
 } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { sendActivationEmail } from "@/lib/mail";
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -76,10 +78,48 @@ export async function registerAction(prevState: any, formData: FormData) {
       return { error: "Failed to create customer account." };
     }
 
-    const inviteResult = await shopifySendActivationEmail(customerId);
-    if (inviteResult.userErrors && inviteResult.userErrors.length > 0) {
-      return { error: inviteResult.userErrors[0].message };
+    const activationUrlResult = await shopifyGenerateActivationUrl(customerId);
+    if (activationUrlResult.userErrors && activationUrlResult.userErrors.length > 0) {
+      return { error: activationUrlResult.userErrors[0].message };
     }
+
+    const shopifyActivationUrl = activationUrlResult.accountActivationUrl;
+    if (!shopifyActivationUrl) {
+      return { error: "Failed to generate account activation link." };
+    }
+
+    // Parse customerId and token from Shopify activation URL
+    // Format: https://{shop-domain}/account/activate/{customerId}/{token}
+    let numericCustomerId = "";
+    let activationToken = "";
+    try {
+      const url = new URL(shopifyActivationUrl);
+      const parts = url.pathname.split("/").filter(Boolean);
+      const activateIndex = parts.indexOf("activate");
+      if (activateIndex !== -1 && parts.length > activateIndex + 2) {
+        numericCustomerId = parts[activateIndex + 1];
+        activationToken = parts[activateIndex + 2];
+      }
+    } catch (e) {
+      console.error("Error parsing Shopify activation URL:", e);
+    }
+
+    if (!numericCustomerId || !activationToken) {
+      return { error: "Failed to extract activation parameters." };
+    }
+
+    // Build Next.js local activation URL dynamically using the current host
+    const headersList = await headers();
+    const host = headersList.get("host") || "localhost:3000";
+    const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
+    const localActivationUrl = `${protocol}://${host}/account/activate/${numericCustomerId}/${activationToken}`;
+
+    // Send custom styled activation email via Mailpit
+    await sendActivationEmail({
+      email,
+      firstName,
+      activationUrl: localActivationUrl,
+    });
 
   } catch (err: any) {
     console.error("Register Server Action Error:", err);
@@ -205,20 +245,10 @@ export async function activateAccountAction(prevState: any, formData: FormData) 
       return { error: "Failed to activate account. No access token received." };
     }
 
-    // Set cookie to log them in automatically
-    const cookieStore = await cookies();
-    cookieStore.set("shopify_customer_token", tokenData.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      expires: new Date(tokenData.expiresAt),
-      path: "/",
-      sameSite: "lax",
-    });
-
   } catch (err: any) {
     console.error("Activate Account Action Error:", err);
     return { error: err.message || "Failed to activate account." };
   }
 
-  redirect("/account");
+  redirect("/account/login?activated=true");
 }

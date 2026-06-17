@@ -169,6 +169,27 @@ export async function shopifySendActivationEmail(customerId: string) {
   return res.body.data.customerSendAccountInviteEmail;
 }
 
+const CUSTOMER_GENERATE_ACTIVATION_URL_MUTATION = `
+  mutation customerGenerateAccountActivationUrl($customerId: ID!) {
+    customerGenerateAccountActivationUrl(customerId: $customerId) {
+      accountActivationUrl
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export async function shopifyGenerateActivationUrl(customerId: string) {
+  const res = await shopifyAdminFetch<any>({
+    query: CUSTOMER_GENERATE_ACTIVATION_URL_MUTATION,
+    variables: { customerId },
+    cache: "no-store",
+  });
+  return res.body.data.customerGenerateAccountActivationUrl;
+}
+
 const CUSTOMER_ACTIVATE_BY_URL_MUTATION = `
   mutation customerActivateByUrl($activationUrl: URL!, $password: String!) {
     customerActivateByUrl(activationUrl: $activationUrl, password: $password) {

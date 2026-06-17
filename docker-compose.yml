@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: shopifynexus-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: "" # Keep database in memory

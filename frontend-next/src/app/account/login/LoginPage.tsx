@@ -8,6 +8,7 @@ import { loginAction } from "../actions";
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
   const searchParams = useSearchParams();
+  const isActivated = searchParams.get("activated") === "true";
   const redirectPath = searchParams.get("redirect") || "/account";
 
   return (
@@ -37,6 +38,15 @@ export default function LoginPage() {
             Enter your credentials to access your gear list and orders.
           </p>
         </div>
+
+        {isActivated && (
+          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-sm rounded-xl flex items-start gap-2.5">
+            <svg className="h-5 w-5 shrink-0 mt-0.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Account activated successfully! Please sign in with your password.</span>
+          </div>
+        )}
 
         {state?.error && (
           <div className="mb-6 p-4 bg-error/10 border border-error/20 text-error text-sm rounded-xl flex items-start gap-2.5">
